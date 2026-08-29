@@ -2,7 +2,6 @@
 
 import argparse
 import json
-import sys
 from pathlib import Path
 
 import matplotlib
@@ -13,9 +12,6 @@ import torch
 from torch.utils.data import DataLoader
 
 TASK1_DIR = Path(__file__).resolve().parent
-PART4_DIR = TASK1_DIR.parent
-sys.path.insert(0, str(PART4_DIR))
-sys.path.insert(0, str(TASK1_DIR))
 
 from dataset import OASISDataset
 from vae import VAE
@@ -25,7 +21,12 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Visualize a trained OASIS VAE")
     parser.add_argument("--data-root", type=Path,
                         default=Path("/home/groups/comp3710/OASIS"))
-    parser.add_argument("--results-dir", type=Path, default=PART4_DIR / "results")
+    parser.add_argument(
+        "--results-dir",
+        type=Path,
+        default=TASK1_DIR / "results",
+    )
+    parser.add_argument("--run-name", type=str, default="stable_v1")
     parser.add_argument("--checkpoint", type=Path, default=None)
     parser.add_argument("--batch-size", type=int, default=32)
     parser.add_argument("--num-workers", type=int, default=4)
@@ -141,9 +142,14 @@ def main():
     args = parse_args()
     if args.num_images <= 0:
         raise ValueError("num_images must be positive")
+    if (not args.run_name or args.run_name in {".", ".."}
+            or Path(args.run_name).name != args.run_name):
+        raise ValueError("run_name must be one non-empty path component")
+
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    args.results_dir.mkdir(parents=True, exist_ok=True)
-    checkpoint_path = args.checkpoint or args.results_dir / "vae_best.pt"
+    run_dir = args.results_dir / args.run_name
+    run_dir.mkdir(parents=True, exist_ok=True)
+    checkpoint_path = args.checkpoint or run_dir / "vae_best.pt"
     checkpoint = load_checkpoint(checkpoint_path, device)
     latent_dim = int(checkpoint["config"]["latent_dim"])
 
@@ -162,21 +168,21 @@ def main():
     if args.num_images > len(test_dataset):
         raise ValueError("num_images cannot exceed the test-set size")
 
-    history_path = args.results_dir / "vae_history.json"
-    plot_loss_curves(history_path, args.results_dir / "loss_curves.png")
+    history_path = run_dir / "vae_history.json"
+    plot_loss_curves(history_path, run_dir / "loss_curves.png")
     plot_reconstructions(
         model, test_loader, device,
-        args.results_dir / "reconstructions.png", args.num_images,
+        run_dir / "reconstructions.png", args.num_images,
     )
     latent_means = collect_latent_means(model, test_loader, device)
     plot_umap_manifold(
-        latent_means, args.results_dir / "latent_manifold_umap.png", args.seed,
+        latent_means, run_dir / "latent_manifold_umap.png", args.seed,
     )
     plot_random_generations(
-        model, device, args.results_dir / "random_generations.png",
+        model, device, run_dir / "random_generations.png",
         args.num_images, args.seed,
     )
-    print(f"Visualizations saved to: {args.results_dir}")
+    print(f"Visualizations saved to: {run_dir}")
 
 
 if __name__ == "__main__":

@@ -3,7 +3,6 @@
 import argparse
 import json
 import random
-import sys
 import time
 from pathlib import Path
 
@@ -12,9 +11,6 @@ import torch
 from torch.utils.data import DataLoader
 
 TASK1_DIR = Path(__file__).resolve().parent
-PART4_DIR = TASK1_DIR.parent
-sys.path.insert(0, str(PART4_DIR))
-sys.path.insert(0, str(TASK1_DIR))
 
 from dataset import OASISDataset
 from vae import LOGVAR_MAX, LOGVAR_MIN, VAE, vae_loss
@@ -24,7 +20,11 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Train an OASIS convolutional VAE")
     parser.add_argument("--data-root", type=Path,
                         default=Path("/home/groups/comp3710/OASIS"))
-    parser.add_argument("--results-dir", type=Path, default=PART4_DIR / "results")
+    parser.add_argument(
+        "--results-dir",
+        type=Path,
+        default=TASK1_DIR / "results",
+    )
     parser.add_argument("--epochs", type=int, default=30)
     parser.add_argument("--batch-size", type=int, default=32)
     parser.add_argument("--learning-rate", type=float, default=3e-4)
