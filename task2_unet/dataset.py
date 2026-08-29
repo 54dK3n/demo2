@@ -8,45 +8,6 @@ from PIL import Image
 from torch.utils.data import Dataset
 
 
-class OASISDataset(Dataset):
-    """Load one normalized single-channel MRI image per item."""
-
-    def __init__(self, image_dir):
-        self.image_dir = Path(image_dir)
-        if not self.image_dir.is_dir():
-            raise FileNotFoundError(f"OASIS image directory not found: {self.image_dir}")
-
-        # Sorting makes the train/validation/test sample order reproducible.
-        self.image_paths = sorted(self.image_dir.glob("*.png"))
-        if not self.image_paths:
-            raise RuntimeError(f"No PNG images found in: {self.image_dir}")
-
-    def __len__(self):
-        return len(self.image_paths)
-
-    def __getitem__(self, index):
-        image_path = self.image_paths[index]
-        with Image.open(image_path) as pil_image:
-            if pil_image.mode != "L":
-                raise ValueError(
-                    f"Expected grayscale MRI mode 'L', got "
-                    f"'{pil_image.mode}' for {image_path}"
-                )
-            image_array = np.array(pil_image, dtype=np.uint8, copy=True)
-
-        if image_array.shape != (256, 256):
-            raise ValueError(
-                f"Expected MRI shape (256, 256), got {image_array.shape} "
-                f"for {image_path}"
-            )
-
-        # The source PNG is uint8 in [0, 255]; the VAE consumes float32 in [0, 1].
-        image = torch.from_numpy(image_array).to(torch.float32).div_(255.0)
-        image = image.unsqueeze(0)
-        assert 0.0 <= image.min().item() and image.max().item() <= 1.0
-        return image
-
-
 class OASISSegmentationDataset(Dataset):
     """Load paired OASIS MRI slices and categorical segmentation masks.
 
@@ -64,10 +25,17 @@ class OASISSegmentationDataset(Dataset):
         255: 3,
     }
 
-    def __init__(self, image_dir, mask_dir, transform=None):
+    def __init__(
+        self,
+        image_dir,
+        mask_dir,
+        transform=None,
+        validate_masks=False,
+    ):
         self.image_dir = Path(image_dir)
         self.mask_dir = Path(mask_dir)
         self.transform = transform
+        self.validate_masks = validate_masks
 
         if not self.image_dir.is_dir():
             raise FileNotFoundError(
@@ -94,6 +62,7 @@ class OASISSegmentationDataset(Dataset):
             raise RuntimeError(f"No mask PNG files found in: {self.mask_dir}")
 
         self.pairs = []
+        used_mask_names = set()
         for image_path in image_paths:
             if not image_path.name.startswith("case_"):
                 raise ValueError(
@@ -110,6 +79,18 @@ class OASISSegmentationDataset(Dataset):
                 )
 
             self.pairs.append((image_path, mask_path))
+            used_mask_names.add(mask_name)
+
+        extra_mask_names = sorted(
+            set(mask_paths_by_name) - used_mask_names
+        )
+        if extra_mask_names:
+            examples = ", ".join(extra_mask_names[:5])
+            raise RuntimeError(
+                f"Found {len(extra_mask_names)} mask file(s) without a "
+                f"corresponding MRI image in {self.image_dir}. Examples: "
+                f"{examples}"
+            )
 
         # Exposed for straightforward inspection in the demonstration.
         self.image_paths = [image_path for image_path, _ in self.pairs]
@@ -153,20 +134,36 @@ class OASISSegmentationDataset(Dataset):
                 f"for {mask_path}"
             )
 
-        raw_values = set(np.unique(raw_mask).tolist())
-        unexpected_values = sorted(raw_values - self.RAW_TO_CLASS.keys())
-        if unexpected_values:
-            raise ValueError(
-                f"Unexpected mask values in {mask_path}: {unexpected_values}. "
-                f"Allowed values are {sorted(self.RAW_TO_CLASS)}."
+        if self.validate_masks:
+            raw_values = set(np.unique(raw_mask).tolist())
+            unexpected_values = sorted(
+                raw_values - self.RAW_TO_CLASS.keys()
             )
+            if unexpected_values:
+                raise ValueError(
+                    f"Unexpected mask values in {mask_path}: "
+                    f"{unexpected_values}. Allowed values are "
+                    f"{sorted(self.RAW_TO_CLASS)}."
+                )
 
         # Explicit categorical conversion for CrossEntropyLoss targets.
-        label_mask = np.empty(raw_mask.shape, dtype=np.int64)
+        # Start with -1 so an unexpected raw value can never leave an
+        # uninitialized class ID behind, even when debug validation is off.
+        label_mask = np.full(raw_mask.shape, -1, dtype=np.int64)
         label_mask[raw_mask == 0] = 0
         label_mask[raw_mask == 85] = 1
         label_mask[raw_mask == 170] = 2
         label_mask[raw_mask == 255] = 3
+
+        invalid_positions = label_mask == -1
+        if invalid_positions.any():
+            unexpected_values = np.unique(raw_mask[invalid_positions]).tolist()
+            raise ValueError(
+                f"Unexpected mask values in {mask_path}: "
+                f"{unexpected_values}. Allowed values are "
+                f"{sorted(self.RAW_TO_CLASS)}."
+            )
+
         mask = torch.from_numpy(label_mask).long()
 
         if self.transform is not None:
@@ -175,8 +172,7 @@ class OASISSegmentationDataset(Dataset):
         self._validate_output(image, mask, image_path, mask_path)
         return image, mask
 
-    @staticmethod
-    def _validate_output(image, mask, image_path, mask_path):
+    def _validate_output(self, image, mask, image_path, mask_path):
         if image.shape != (1, 256, 256):
             raise ValueError(
                 f"Expected image tensor shape (1, 256, 256), got "
@@ -198,13 +194,14 @@ class OASISSegmentationDataset(Dataset):
                 f"for {mask_path}"
             )
 
-        class_ids = set(torch.unique(mask).tolist())
-        unexpected_class_ids = sorted(class_ids - {0, 1, 2, 3})
-        if unexpected_class_ids:
-            raise ValueError(
-                f"Unexpected class IDs in transformed mask {mask_path}: "
-                f"{unexpected_class_ids}. Allowed IDs are [0, 1, 2, 3]."
-            )
+        if self.validate_masks:
+            class_ids = set(torch.unique(mask).tolist())
+            unexpected_class_ids = sorted(class_ids - {0, 1, 2, 3})
+            if unexpected_class_ids:
+                raise ValueError(
+                    f"Unexpected class IDs in transformed mask {mask_path}: "
+                    f"{unexpected_class_ids}. Allowed IDs are [0, 1, 2, 3]."
+                )
 
 
 if __name__ == "__main__":
@@ -214,7 +211,11 @@ if __name__ == "__main__":
     train_image_dir = data_root / "keras_png_slices_train"
     train_mask_dir = data_root / "keras_png_slices_seg_train"
 
-    dataset = OASISSegmentationDataset(train_image_dir, train_mask_dir)
+    dataset = OASISSegmentationDataset(
+        train_image_dir,
+        train_mask_dir,
+        validate_masks=True,
+    )
     image, mask = dataset[0]
 
     print("Dataset size:", len(dataset))

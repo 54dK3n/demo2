@@ -12,7 +12,7 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader
 
 from model import UNet
-from part4.dataset import OASISSegmentationDataset
+from dataset import OASISSegmentationDataset
 
 
 # Straightforward baseline configuration.
