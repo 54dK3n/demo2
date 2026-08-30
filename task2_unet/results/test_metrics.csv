@@ -1,0 +1,9 @@
+record,class,dice,predicted_pixels,ground_truth_pixels,intersection,value
+class,0,0.9993219569,25757824,25762497,25742694,
+class,1,0.9656546340,2055831,2066763,1990501,
+class,2,0.9655854922,4035909,4052918,3905227,
+class,3,0.9789196910,3802020,3769406,3705909,
+summary,mean_dice,,,,,0.9773704434888195
+summary,minimum_dice,,,,,0.9655854921857069
+summary,checkpoint,,,,,/home/Student/s4983666/demo2/task2_unet/checkpoints/best_unet.pt
+summary,number_of_test_samples,,,,,544
