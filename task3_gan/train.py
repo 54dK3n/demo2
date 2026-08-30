@@ -110,10 +110,8 @@ def train_batch(generator, discriminator, real, criterion, optimizer_g,
     optimizer_d.step()
 
     # Generator update: freeze D parameters while retaining its input gradient.
-    # Evaluation mode also prevents D's BatchNorm running statistics from being
-    # changed during a step that is intended to update G only.
+    # D remains in training mode so its BatchNorm behavior stays consistent.
     set_requires_grad(discriminator, False)
-    discriminator.eval()
     optimizer_g.zero_grad(set_to_none=True)
     fake_logits_g = discriminator(fake)
     loss_g = criterion(fake_logits_g, real_targets)
@@ -121,14 +119,15 @@ def train_batch(generator, discriminator, real, criterion, optimizer_g,
     loss_g.backward()
     optimizer_g.step()
     set_requires_grad(discriminator, True)
-    discriminator.train()
 
     return {
         "loss_d": loss_d.detach().item(),
+        "loss_d_real": loss_d_real.detach().item(),
+        "loss_d_fake": loss_d_fake.detach().item(),
         "loss_g": loss_g.detach().item(),
-        "d_real": torch.sigmoid(real_logits.detach()).mean().item(),
-        "d_fake_before_g": torch.sigmoid(fake_logits_d.detach()).mean().item(),
-        "d_fake_after_g": torch.sigmoid(fake_logits_g.detach()).mean().item(),
+        "d_real_pre_d": torch.sigmoid(real_logits.detach()).mean().item(),
+        "d_fake_pre_d": torch.sigmoid(fake_logits_d.detach()).mean().item(),
+        "d_fake_post_d": torch.sigmoid(fake_logits_g.detach()).mean().item(),
     }
 
 
@@ -188,6 +187,23 @@ def save_loss_plot(history, path):
     axis.plot(epochs, [row["loss_d"] for row in history], label="Discriminator")
     axis.plot(epochs, [row["loss_g"] for row in history], label="Generator")
     axis.set(xlabel="Epoch", ylabel="BCE loss", title="DCGAN training losses")
+    axis.grid(alpha=0.25)
+    axis.legend()
+    figure.tight_layout()
+    figure.savefig(path, dpi=150)
+    plt.close(figure)
+
+
+def save_discriminator_components_plot(history, path):
+    epochs = [row["epoch"] for row in history]
+    figure, axis = plt.subplots(figsize=(8, 5))
+    axis.plot(epochs, [row["loss_d_real"] for row in history], label="D real")
+    axis.plot(epochs, [row["loss_d_fake"] for row in history], label="D fake")
+    axis.set(
+        xlabel="Epoch",
+        ylabel="BCE loss",
+        title="Discriminator loss components",
+    )
     axis.grid(alpha=0.25)
     axis.legend()
     figure.tight_layout()
@@ -282,9 +298,18 @@ def main():
     history = []
     for epoch in range(1, args.epochs + 1):
         started = time.time()
-        totals = {name: 0.0 for name in (
-            "loss_d", "loss_g", "d_real", "d_fake_before_g", "d_fake_after_g"
-        )}
+        totals = {
+            name: 0.0
+            for name in (
+                "loss_d",
+                "loss_d_real",
+                "loss_d_fake",
+                "loss_g",
+                "d_real_pre_d",
+                "d_fake_pre_d",
+                "d_fake_post_d",
+            )
+        }
         batches = 0
         generator.train()
         discriminator.train()
@@ -302,7 +327,10 @@ def main():
             if batch_index % args.log_every == 0:
                 print(
                     f"Epoch {epoch:03d}/{args.epochs:03d} batch {batch_index:04d} "
-                    f"D={metrics['loss_d']:.4f} G={metrics['loss_g']:.4f}"
+                    f"D_total={metrics['loss_d']:.4f} "
+                    f"D_real={metrics['loss_d_real']:.4f} "
+                    f"D_fake={metrics['loss_d_fake']:.4f} "
+                    f"G={metrics['loss_g']:.4f}"
                 )
             if args.max_batches is not None and batch_index >= args.max_batches:
                 break
@@ -317,6 +345,9 @@ def main():
         history.append(row)
         save_history(history, run_dir / "history.csv")
         save_loss_plot(history, run_dir / "loss_curve.png")
+        save_discriminator_components_plot(
+            history, run_dir / "discriminator_components.png"
+        )
 
         payload = checkpoint_payload(
             epoch, generator, discriminator, optimizer_g, optimizer_d,
@@ -329,13 +360,17 @@ def main():
         collapse_note = ""
         if row["near_duplicate_rate"] >= 0.5 or row["sample_pixel_std"] < 0.02:
             collapse_note = " WARNING: possible mode collapse; inspect samples."
-        print(
-            f"Epoch {epoch:03d}: D={row['loss_d']:.4f} G={row['loss_g']:.4f} "
-            f"D(real)={row['d_real']:.3f} D(fake)={row['d_fake_after_g']:.3f} "
-            f"pairwise_RMSE={row['mean_pairwise_rmse']:.4f} "
-            f"duplicates={row['near_duplicate_rate']:.1%} "
-            f"({row['seconds']:.1f}s){collapse_note}"
-        )
+        print(f"Epoch {epoch:03d}:")
+        print(f"D_total={row['loss_d']:.4f}")
+        print(f"D_real={row['loss_d_real']:.4f}")
+        print(f"D_fake={row['loss_d_fake']:.4f}")
+        print(f"G={row['loss_g']:.4f}")
+        print(f"D(real,preD)={row['d_real_pre_d']:.3f}")
+        print(f"D(fake,preD)={row['d_fake_pre_d']:.3f}")
+        print(f"D(fake,postD)={row['d_fake_post_d']:.3f}")
+        print(f"pairwise_RMSE={row['mean_pairwise_rmse']:.4f}")
+        print(f"duplicates={row['near_duplicate_rate']:.1%}")
+        print(f"time={row['seconds']:.1f}s{collapse_note}")
 
     print(f"Training evidence saved to: {run_dir}")
 
