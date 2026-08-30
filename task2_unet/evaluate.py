@@ -155,6 +155,16 @@ def save_metrics_csv(
     mean_dice = float(np.mean(measured_scores)) if measured_scores else None
     minimum_dice = min(measured_scores) if measured_scores else None
 
+    checkpoint_record = checkpoint_path.resolve()
+    try:
+        checkpoint_record = checkpoint_record.relative_to(
+            Path.cwd().resolve()
+        )
+    except ValueError:
+        # Keep an external checkpoint absolute, but avoid embedding a personal
+        # home path when the checkpoint is inside the repository.
+        pass
+
     fieldnames = [
         "record",
         "class",
@@ -183,7 +193,7 @@ def save_metrics_csv(
         summary_rows = {
             "mean_dice": mean_dice,
             "minimum_dice": minimum_dice,
-            "checkpoint": str(checkpoint_path),
+            "checkpoint": str(checkpoint_record),
             "number_of_test_samples": number_of_samples,
         }
         for name, value in summary_rows.items():

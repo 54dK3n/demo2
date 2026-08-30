@@ -1,0 +1,6 @@
+{
+  "sample_pixel_std": 0.002108450513333082,
+  "mean_pairwise_rmse": 0.003134936559945345,
+  "mean_nearest_rmse": 0.002891681157052517,
+  "near_duplicate_rate": 1.0
+}

@@ -259,8 +259,21 @@ def main():
     samples_dir.mkdir(parents=True, exist_ok=True)
     checkpoints_dir.mkdir(parents=True, exist_ok=True)
 
-    config = {key: str(value) if isinstance(value, Path) else value
-              for key, value in vars(args).items()}
+    config = {}
+    working_directory = Path.cwd().resolve()
+    for key, value in vars(args).items():
+        if not isinstance(value, Path):
+            config[key] = value
+            continue
+        resolved_value = value.resolve()
+        try:
+            # Project-local paths stay portable when results move between the
+            # cluster, a local machine, and GitHub.
+            config[key] = str(resolved_value.relative_to(working_directory))
+        except ValueError:
+            # External data roots, such as the shared OASIS path, remain
+            # absolute so the original experiment input is unambiguous.
+            config[key] = str(resolved_value)
     (run_dir / "config.json").write_text(json.dumps(config, indent=2) + "\n")
 
     if not args.skip_smoke_test:

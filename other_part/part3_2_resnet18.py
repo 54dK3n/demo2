@@ -26,7 +26,9 @@ from torchvision import datasets
 SEED = 42
 DATA_ROOT = "./data"
 MOMENTUM = 0.9
-SAVE_MODELS = False
+# Keep the best state dictionary for the required live inference demonstration.
+# Checkpoints are ignored by Git because they are generated binary artifacts.
+SAVE_MODELS = True
 RESUME_COMPLETED = True
 RESULTS_CSV = "resnet18_experiment_results.csv"
 EPOCH_METRICS_JSONL = "resnet18_epoch_metrics.jsonl"

@@ -1,2 +1,23 @@
 .DS_Store
 *.pt
+*.pth
+__pycache__/
+*.py[cod]
+.venv/
+.ipynb_checkpoints/
+data/
+
+# Keep failed/debug GAN runs locally without presenting them as final evidence.
+task3_gan/results/dcgan_64_baseline/
+task3_gan/results/smoke_run/
+
+# The final GAN run retains all local samples, but Git only sees representative
+# milestones used by the README and demonstration.
+task3_gan/results/dcgan_64_d_train_mode/samples/*
+!task3_gan/results/dcgan_64_d_train_mode/samples/epoch_001.png
+!task3_gan/results/dcgan_64_d_train_mode/samples/epoch_010.png
+!task3_gan/results/dcgan_64_d_train_mode/samples/epoch_020.png
+!task3_gan/results/dcgan_64_d_train_mode/samples/epoch_030.png
+!task3_gan/results/dcgan_64_d_train_mode/samples/epoch_040.png
+!task3_gan/results/dcgan_64_d_train_mode/samples/epoch_049.png
+!task3_gan/results/dcgan_64_d_train_mode/samples/epoch_050.png

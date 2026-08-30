@@ -1,0 +1,18 @@
+{
+  "image_dir": "/home/groups/comp3710/OASIS/keras_png_slices_train",
+  "results_dir": "task3_gan/results",
+  "run_name": "dcgan_64_d_train_mode",
+  "epochs": 50,
+  "batch_size": 64,
+  "latent_dim": 128,
+  "learning_rate": 0.0002,
+  "beta1": 0.5,
+  "beta2": 0.999,
+  "num_workers": 4,
+  "seed": 42,
+  "sample_count": 64,
+  "checkpoint_every": 5,
+  "log_every": 100,
+  "max_batches": null,
+  "skip_smoke_test": false
+}
