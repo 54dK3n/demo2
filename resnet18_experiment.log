@@ -1,0 +1,50 @@
+2026-08-30 16:57:42,348 | INFO | Device: cuda
+2026-08-30 16:57:42,348 | INFO | GPU name: NVIDIA A100-PCIE-40GB
+2026-08-30 16:57:42,348 | INFO | Precision: BF16
+2026-08-30 16:57:42,349 | INFO | ========================================================================
+2026-08-30 16:57:42,349 | INFO | Starting experiment: ResNet18_40epoch_target
+2026-08-30 16:57:42,349 | INFO | Configuration: {'name': 'ResNet18_40epoch_target', 'group': '94% target', 'pct_start': 0.15, 'epochs': 40, 'batch_size': 512, 'learning_rate': 0.4, 'scheduler': 'OneCycleLR', 'weight_decay': 0.0005, 'nesterov': True, 'label_smoothing': 0.1, 'mixup_alpha': 0.2, 'augmentation': 'mixup', 'use_tta': True, 'channels_last': True}
+2026-08-30 17:22:10,141 | INFO | ResNet18_40epoch_target epoch 01/40 | train 11.17s | GPU 11.14s | overhead 0.03s | throughput 4476 img/s | test skipped
+2026-08-30 17:22:12,286 | INFO | ResNet18_40epoch_target epoch 02/40 | train 2.14s | GPU 2.13s | overhead 0.02s | throughput 23327 img/s | test skipped
+2026-08-30 17:22:14,385 | INFO | ResNet18_40epoch_target epoch 03/40 | train 2.10s | GPU 2.08s | overhead 0.02s | throughput 23857 img/s | test skipped
+2026-08-30 17:22:16,486 | INFO | ResNet18_40epoch_target epoch 04/40 | train 2.10s | GPU 2.08s | overhead 0.02s | throughput 23822 img/s | test skipped
+2026-08-30 17:22:20,681 | INFO | ResNet18_40epoch_target epoch 05/40 | train 2.10s | GPU 2.08s | overhead 0.02s | throughput 23834 img/s | test 55.52%
+2026-08-30 17:22:22,843 | INFO | ResNet18_40epoch_target epoch 06/40 | train 2.16s | GPU 2.14s | overhead 0.02s | throughput 23146 img/s | test skipped
+2026-08-30 17:22:24,945 | INFO | ResNet18_40epoch_target epoch 07/40 | train 2.10s | GPU 2.08s | overhead 0.02s | throughput 23805 img/s | test skipped
+2026-08-30 17:22:27,044 | INFO | ResNet18_40epoch_target epoch 08/40 | train 2.10s | GPU 2.08s | overhead 0.02s | throughput 23836 img/s | test skipped
+2026-08-30 17:22:29,147 | INFO | ResNet18_40epoch_target epoch 09/40 | train 2.10s | GPU 2.08s | overhead 0.02s | throughput 23791 img/s | test skipped
+2026-08-30 17:22:32,939 | INFO | ResNet18_40epoch_target epoch 10/40 | train 2.10s | GPU 2.08s | overhead 0.02s | throughput 23794 img/s | test 78.80%
+2026-08-30 17:22:35,040 | INFO | ResNet18_40epoch_target epoch 11/40 | train 2.10s | GPU 2.08s | overhead 0.02s | throughput 23806 img/s | test skipped
+2026-08-30 17:22:37,144 | INFO | ResNet18_40epoch_target epoch 12/40 | train 2.10s | GPU 2.08s | overhead 0.02s | throughput 23782 img/s | test skipped
+2026-08-30 17:22:39,248 | INFO | ResNet18_40epoch_target epoch 13/40 | train 2.10s | GPU 2.08s | overhead 0.02s | throughput 23784 img/s | test skipped
+2026-08-30 17:22:41,352 | INFO | ResNet18_40epoch_target epoch 14/40 | train 2.10s | GPU 2.08s | overhead 0.02s | throughput 23782 img/s | test skipped
+2026-08-30 17:22:45,059 | INFO | ResNet18_40epoch_target epoch 15/40 | train 2.10s | GPU 2.09s | overhead 0.02s | throughput 23778 img/s | test 79.86%
+2026-08-30 17:22:47,162 | INFO | ResNet18_40epoch_target epoch 16/40 | train 2.10s | GPU 2.08s | overhead 0.02s | throughput 23800 img/s | test skipped
+2026-08-30 17:22:49,268 | INFO | ResNet18_40epoch_target epoch 17/40 | train 2.10s | GPU 2.09s | overhead 0.02s | throughput 23761 img/s | test skipped
+2026-08-30 17:22:51,375 | INFO | ResNet18_40epoch_target epoch 18/40 | train 2.11s | GPU 2.09s | overhead 0.02s | throughput 23739 img/s | test skipped
+2026-08-30 17:22:53,483 | INFO | ResNet18_40epoch_target epoch 19/40 | train 2.11s | GPU 2.09s | overhead 0.02s | throughput 23742 img/s | test skipped
+2026-08-30 17:22:57,081 | INFO | ResNet18_40epoch_target epoch 20/40 | train 2.11s | GPU 2.09s | overhead 0.02s | throughput 23726 img/s | test 84.24%
+2026-08-30 17:22:59,185 | INFO | ResNet18_40epoch_target epoch 21/40 | train 2.10s | GPU 2.09s | overhead 0.02s | throughput 23773 img/s | test skipped
+2026-08-30 17:23:01,293 | INFO | ResNet18_40epoch_target epoch 22/40 | train 2.11s | GPU 2.09s | overhead 0.02s | throughput 23737 img/s | test skipped
+2026-08-30 17:23:03,401 | INFO | ResNet18_40epoch_target epoch 23/40 | train 2.11s | GPU 2.09s | overhead 0.02s | throughput 23739 img/s | test skipped
+2026-08-30 17:23:05,513 | INFO | ResNet18_40epoch_target epoch 24/40 | train 2.11s | GPU 2.09s | overhead 0.02s | throughput 23690 img/s | test skipped
+2026-08-30 17:23:09,077 | INFO | ResNet18_40epoch_target epoch 25/40 | train 2.11s | GPU 2.09s | overhead 0.02s | throughput 23693 img/s | test 89.28%
+2026-08-30 17:23:11,184 | INFO | ResNet18_40epoch_target epoch 26/40 | train 2.11s | GPU 2.09s | overhead 0.02s | throughput 23748 img/s | test skipped
+2026-08-30 17:23:13,294 | INFO | ResNet18_40epoch_target epoch 27/40 | train 2.11s | GPU 2.09s | overhead 0.02s | throughput 23708 img/s | test skipped
+2026-08-30 17:23:15,404 | INFO | ResNet18_40epoch_target epoch 28/40 | train 2.11s | GPU 2.09s | overhead 0.02s | throughput 23715 img/s | test skipped
+2026-08-30 17:23:17,517 | INFO | ResNet18_40epoch_target epoch 29/40 | train 2.11s | GPU 2.09s | overhead 0.02s | throughput 23681 img/s | test skipped
+2026-08-30 17:23:21,130 | INFO | ResNet18_40epoch_target epoch 30/40 | train 2.11s | GPU 2.09s | overhead 0.02s | throughput 23698 img/s | test 91.53%
+2026-08-30 17:23:24,753 | INFO | ResNet18_40epoch_target epoch 31/40 | train 2.11s | GPU 2.09s | overhead 0.02s | throughput 23732 img/s | test 92.24%
+2026-08-30 17:23:28,247 | INFO | ResNet18_40epoch_target epoch 32/40 | train 2.11s | GPU 2.09s | overhead 0.02s | throughput 23727 img/s | test 92.48%
+2026-08-30 17:23:31,875 | INFO | ResNet18_40epoch_target epoch 33/40 | train 2.11s | GPU 2.09s | overhead 0.02s | throughput 23742 img/s | test 92.86%
+2026-08-30 17:23:35,540 | INFO | ResNet18_40epoch_target epoch 34/40 | train 2.11s | GPU 2.09s | overhead 0.02s | throughput 23730 img/s | test 93.38%
+2026-08-30 17:23:38,949 | INFO | ResNet18_40epoch_target epoch 35/40 | train 2.10s | GPU 2.09s | overhead 0.02s | throughput 23753 img/s | test 93.75%
+2026-08-30 17:23:42,484 | INFO | ResNet18_40epoch_target epoch 36/40 | train 2.11s | GPU 2.09s | overhead 0.02s | throughput 23747 img/s | test 94.11%
+2026-08-30 17:23:45,954 | INFO | ResNet18_40epoch_target epoch 37/40 | train 2.10s | GPU 2.09s | overhead 0.02s | throughput 23754 img/s | test 94.40%
+2026-08-30 17:23:49,588 | INFO | ResNet18_40epoch_target epoch 38/40 | train 2.11s | GPU 2.09s | overhead 0.02s | throughput 23742 img/s | test 94.77%
+2026-08-30 17:23:51,937 | INFO | ResNet18_40epoch_target epoch 39/40 | train 2.11s | GPU 2.09s | overhead 0.02s | throughput 23733 img/s | test 94.58%
+2026-08-30 17:23:54,287 | INFO | ResNet18_40epoch_target epoch 40/40 | train 2.11s | GPU 2.09s | overhead 0.02s | throughput 23696 img/s | test 94.62%
+2026-08-30 17:23:54,288 | INFO | Completed ResNet18_40epoch_target | train 93.35s | best 94.77% | GPU compute share 99.23%
+2026-08-30 17:23:54,294 | INFO | Saved summary CSV: resnet18_experiment_results.csv
+2026-08-30 17:23:54,295 | INFO | Saved epoch metrics: resnet18_epoch_metrics.jsonl
+2026-08-30 17:23:54,295 | INFO | Experiment suite finished; no further search started
