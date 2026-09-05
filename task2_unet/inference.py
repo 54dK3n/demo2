@@ -153,13 +153,12 @@ def main():
     print(image_path.name)
     print("\nGround truth:")
     print(mask_path.name)
-    print("\nInput shape:")
-    print(batched_image.shape)
 
     with torch.inference_mode():
-        # The network returns raw categorical logits during training because
-        # CrossEntropyLoss requires differentiable logits. Hard one-hot predictions
-        # are produced only during inference/demo after argmax.
+        # The network returns raw categorical logits during training.
+        # Hard one-hot predictions are created only during inference after argmax,
+        # because argmax/one-hot are not differentiable and therefore should not
+        # be placed inside the training forward path.
         logits = model(batched_image)
 
         # logits: raw scores for four classes at every pixel.
@@ -188,10 +187,38 @@ def main():
     assert torch.all(prediction_one_hot.sum(dim=1) == 1)
 
     print()
+    print(f"Input shape:               {list(batched_image.shape)}")
     print(f"Raw logits shape:          {list(logits.shape)}")
     print(f"Class-index prediction:    {list(prediction.shape)}")
     print(f"One-hot prediction shape:  {list(prediction_one_hot.shape)}")
-    print("One-hot validation: PASS")
+    print("One-hot validation:        PASS")
+
+    # Prefer a real foreground pixel (class 1, then 2, then 3).
+    # An all-background prediction falls back to the pixel at (0, 0).
+    example_y = None
+    example_x = None
+    for class_id in range(1, NUM_CLASSES):
+        positions = (prediction[0] == class_id).nonzero(as_tuple=False)
+        if len(positions) > 0:
+            example_y, example_x = positions[0].tolist()
+            break
+    if example_y is None:
+        example_y, example_x = 0, 0
+
+    class_id = int(prediction[0, example_y, example_x].item())
+    one_hot_vector = prediction_one_hot[0, :, example_y, example_x].tolist()
+    print("\nExample categorical prediction:")
+    print(f"Pixel position:            ({example_y}, {example_x})")
+    print(f"Predicted class ID:        {class_id}")
+    print(f"One-hot encoding:          {one_hot_vector}")
+    print(f"Channel sum:               {sum(one_hot_vector)}")
+
+    # Show only categorical vectors actually present, not the full tensor.
+    vectors = prediction_one_hot.permute(0, 2, 3, 1).reshape(-1, NUM_CLASSES)
+    unique_vectors = torch.unique(vectors, dim=0)
+    print("\nUnique one-hot vectors present:")
+    for vector in unique_vectors.tolist():
+        print(vector)
 
     prediction = prediction[0].cpu()
     print("\nPredicted classes:")
