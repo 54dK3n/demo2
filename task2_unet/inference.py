@@ -157,8 +157,20 @@ def main():
     print(batched_image.shape)
 
     with torch.inference_mode():
+        # The network returns raw categorical logits during training because
+        # CrossEntropyLoss requires differentiable logits. Hard one-hot predictions
+        # are produced only during inference/demo after argmax.
         logits = model(batched_image)
+
+        # logits: raw scores for four classes at every pixel.
         prediction = logits.argmax(dim=1)
+
+        # prediction: one class ID per pixel; prediction_one_hot: the equivalent
+        # four-channel categorical encoding with exactly one active channel.
+        prediction_one_hot = torch.nn.functional.one_hot(
+            prediction,
+            num_classes=NUM_CLASSES,
+        ).permute(0, 3, 1, 2).to(torch.uint8)
 
     expected_logits_shape = (1, NUM_CLASSES, 256, 256)
     if tuple(logits.shape) != expected_logits_shape:
@@ -167,10 +179,19 @@ def main():
             f"{tuple(logits.shape)}"
         )
 
-    print("\nOutput logits shape:")
-    print(logits.shape)
-    print("\nPrediction shape:")
-    print(prediction.shape)
+    assert prediction_one_hot.shape == (
+        batched_image.shape[0],
+        NUM_CLASSES,
+        256,
+        256,
+    )
+    assert torch.all(prediction_one_hot.sum(dim=1) == 1)
+
+    print()
+    print(f"Raw logits shape:          {list(logits.shape)}")
+    print(f"Class-index prediction:    {list(prediction.shape)}")
+    print(f"One-hot prediction shape:  {list(prediction_one_hot.shape)}")
+    print("One-hot validation: PASS")
 
     prediction = prediction[0].cpu()
     print("\nPredicted classes:")
